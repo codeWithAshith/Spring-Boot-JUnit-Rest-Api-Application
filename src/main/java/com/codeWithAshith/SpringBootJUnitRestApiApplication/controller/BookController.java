@@ -48,4 +48,12 @@ public class BookController {
         return bookRepository.save(existingBook);
     }
 
+    @DeleteMapping("/{bookId}")
+    public void deleteById(@PathVariable Long bookId) throws Exception {
+        if (!bookRepository.findById(bookId).isPresent()) {
+            throw new Exception("Book with id " + bookId + " does not exit");
+        }
+        bookRepository.deleteById(bookId);
+    }
+
 }
