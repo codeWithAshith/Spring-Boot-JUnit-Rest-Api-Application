@@ -6,13 +6,28 @@ import com.codeWithAshith.SpringBootJUnitRestApiApplication.repository.BookRepos
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.internal.bytebuddy.matcher.ElementMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BookControllerTest {
@@ -36,5 +51,33 @@ public class BookControllerTest {
     public void setup(){
         MockitoAnnotations.initMocks(this);
         mockMvc = MockMvcBuilders.standaloneSetup(bookController).build();
+    }
+
+    @Test
+    public void getAllBooks_Success() throws Exception {
+        List<Book> bookList = new ArrayList<>(Arrays.asList(RECORD_1,RECORD_2,RECORD_3));
+
+        Mockito.when(bookRepository.findAll()).thenReturn(bookList);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/book")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(bookList)))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(3)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[2].name").value("IJKL"));
+    }
+
+    @Test
+    public void getBookById_Success() throws Exception {
+        Mockito.when(bookRepository.findById(RECORD_1.getBookId())).thenReturn(Optional.of(RECORD_1));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/book/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(RECORD_1)))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$", notNullValue()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("ABCD"));
     }
 }
