@@ -106,4 +106,29 @@ public class BookControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$", notNullValue()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("name"));
     }
+
+    @Test
+    public void updateBook_Success() throws Exception {
+        Book updatedBook = Book.builder()
+                .bookId(1L)
+                .name("updated name")
+                .summary("updated sum")
+                .rating(3)
+                .build();
+
+        Mockito.when(bookRepository.findById(1L)).thenReturn(Optional.ofNullable(RECORD_1));
+        Mockito.when(bookRepository.save(updatedBook)).thenReturn(updatedBook);
+
+        String content = objectWriter.writeValueAsString(updatedBook);
+
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.put("/book")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(content);
+
+        mockMvc.perform(mockRequest)
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$", notNullValue()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("updated name"));
+    }
 }
